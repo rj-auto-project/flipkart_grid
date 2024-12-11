@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing</title>
+    <style>
+        #loader {
+            display: none;
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #result {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload an Image</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="loader"></div>
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const loader = document.getElementById('loader');
+        const result = document.getElementById('result');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            loader.style.display = 'block';
+            result.innerHTML = '';
+
+            const formData = new FormData(form);
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+            
+                const data = await response.json();
+                loader.style.display = 'none';
+            
+                if (response.ok) {
+                    if (Array.isArray(data)) {
+                        // Create the table and display the data
+                        let html = `<p>Total products: ${data.length}</p>`;
+                        html += `<table>
+                                    <thead>
+                                        <tr>
+                                            <th>Product Name</th>
+                                            <th>Expiry Date</th>
+                                            <th>Days Left</th>
+                                            <th>Freshness</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+                        
+                        data.forEach(product => {
+                            html += `<tr>
+                                        <td>${product.product_name}</td>
+                                        <td>${product.expiry_date}</td>
+                                        <td>${product.expected_life_span}</td>
+                                        <td>${product.freshness}</td>
+                                      </tr>`;
+                        });
+            
+                        html += `</tbody></table>`;
+                        result.innerHTML = html;
+                    } else {
+                        result.innerHTML = `<p>Unexpected response format: ${JSON.stringify(data)}</p>`;
+                    }
+                } else {
+                    result.innerHTML = `<p>Error: ${data.error || 'Server error'}</p>`;
+                }
+            } catch (error) {
+                loader.style.display = 'none';
+                result.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+            
+        });
+    </script>
+</body>
+</html>
