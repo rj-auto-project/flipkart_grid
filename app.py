@@ -14,7 +14,7 @@ UPLOAD_FOLDER = '/home/annone/ai/flipkart_final/data/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-api_key = "AIzaSyA8qnDcWs3W0QL8DxFX2w10DhPIDdlxn3A"
+api_key = "AIzaSyBhd_aSdO_qz_C0y5oLYB1pstE0XC0-6nM"
 prompt = "how many products are there in this image, name them, type of product (only among these: vegetable, fruit, or packet product), expiry datee if visible, days left of expiration, and rate their freshness between 1-10. Return the response in JSON format exactly like this '[{ 'product_name': 'Coconut', 'type': 'fruit', 'expiry_date': 'Not visible', 'expected_life_span': 'Not applicable', 'freshness': '7' }, { 'product_name': 'Cauliflower', 'type': 'vegetable', 'expiry_date': 'Not visible', 'expected_life_span': '20 days', 'freshness': '8' }]'"
 genai.configure(api_key=api_key)
 

@@ -1,108 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Processing</title>
+    <title>Product Image Analysis</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 2rem;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 2rem;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .file-input-container {
+            position: relative;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .custom-file-input {
+            background: #4299e1;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .custom-file-input:hover {
+            background: #3182ce;
+        }
+
+        #imagePreview {
+            max-width: 300px;
+            max-height: 300px;
+            margin: 1rem 0;
+            border-radius: 8px;
+            display: none;
+        }
+
         #loader {
             display: none;
-            border: 8px solid #f3f3f3;
+            border: 4px solid #f3f3f3;
             border-radius: 50%;
-            border-top: 8px solid #3498db;
-            width: 50px;
-            height: 50px;
+            border-top: 4px solid #4299e1;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
+            margin: 1rem auto;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        #result {
-            margin-top: 20px;
-        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 1.5rem;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
         }
-        th, td {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+
+        th,
+        td {
+            padding: 1rem;
             text-align: left;
+            border-bottom: 1px solid #e2e8f0;
         }
+
         th {
-            background-color: #f4f4f4;
+            background-color: #4299e1;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f7fafc;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            text-align: center;
+            padding: 1rem;
+            background: #fff5f5;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .total-products {
+            text-align: right;
+            margin-top: 1rem;
+            font-weight: 600;
+            color: #4299e1;
+        }
+        .heading{
+            font-size: xx-large;
+            font-weight: bold;
+            text-align: center;
+        }
+        sub{
+            font-weight: normal;
+            font-size: large;
         }
     </style>
 </head>
+
 <body>
-    <h1>Upload an Image</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" id="fileInput" name="file" accept="image/*" required>
-        <button type="submit">Upload</button>
-    </form>
-    <div id="loader"></div>
-    <div id="result"></div>
+    <div class="container">
+        <div class="heading"><span>AI Product Analysis Tool</span><sub>Flipkart Grid</sub></div>
+        <span>Upload an image of products to test our AI model<br></span>
+        <div class="upload-section">
+            <div class="file-input-container">
+                <label for="fileInput" class="custom-file-input">Choose Image</label>
+                <input type="file" id="fileInput" name="file" accept="image/*" required>
+            </div>
+            <img id="imagePreview" alt="Preview" />
+        </div>
+        <div id="loader"></div>
+        <div id="result"></div>
+    </div>
 
     <script>
-        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
         const loader = document.getElementById('loader');
         const result = document.getElementById('result');
 
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            loader.style.display = 'block';
-            result.innerHTML = '';
+        fileInput.addEventListener('change', async function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                loader.style.display = 'block';
+                result.innerHTML = '';
+                const formData = new FormData();
+                formData.append('file', file);
 
-            const formData = new FormData(form);
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-            
-                const data = await response.json();
-                loader.style.display = 'none';
-            
-                if (response.ok) {
-                    if (Array.isArray(data)) {
-                        // Create the table and display the data
-                        let html = `<p>Total products: ${data.length}</p>`;
-                        html += `<table>
-                                    <thead>
-                                        <tr>
-                                            <th>Product Name</th>
-                                            <th>Expiry Date</th>
-                                            <th>Days Left</th>
-                                            <th>Freshness</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
-                        
-                        data.forEach(product => {
-                            html += `<tr>
-                                        <td>${product.product_name}</td>
-                                        <td>${product.expiry_date}</td>
-                                        <td>${product.expected_life_span}</td>
-                                        <td>${product.freshness}</td>
-                                      </tr>`;
-                        });
-            
-                        html += `</tbody></table>`;
-                        result.innerHTML = html;
-                    } else {
-                        result.innerHTML = `<p>Unexpected response format: ${JSON.stringify(data)}</p>`;
+                try {
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData,
+                        mode: "no-cors"
+                    });
+
+                    const text = await response.text(); 
+                    loader.style.display = 'none';
+                    console.log('Raw response:', text); 
+
+                    if (!text) {
+                        result.innerHTML = `<div class="error-message">Error: Empty response from the server.</div>`;
+                        return;
                     }
-                } else {
-                    result.innerHTML = `<p>Error: ${data.error || 'Server error'}</p>`;
+
+                    let data;
+                    try {
+                        data = JSON.parse(text); // Attempt to parse JSON
+                    } catch (error) {
+                        result.innerHTML = `<div class="error-message">Error: Invalid JSON response from server.</div>`;
+                        console.error('JSON Parse Error:', error);
+                        return;
+                    }
+
+                    if (response.ok) {
+                        if (Array.isArray(data)) {
+                            let html = `<div class="total-products">Total products: ${data.length}</div>`;
+                            html += `<table>
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Expiry Date</th>
+                                        <th>Days Left</th>
+                                        <th>Freshness</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                            data.forEach(product => {
+                                html += `<tr>
+                                    <td>${product.product_name}</td>
+                                    <td>${product.expiry_date}</td>
+                                    <td>${product.expected_life_span}</td>
+                                    <td>${product.freshness}</td>
+                                  </tr>`;
+                            });
+
+                            html += `</tbody></table>`;
+                            result.innerHTML = html;
+                        } else {
+                            result.innerHTML = `<div class="error-message">Unexpected response format: ${JSON.stringify(data)}</div>`;
+                        }
+                    } else {
+                        result.innerHTML = `<div class="error-message">Error: ${data.error || 'Server error'}</div>`;
+                    }
+                } catch (error) {
+                    loader.style.display = 'none';
+                    result.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+                    console.error('Fetch Error:', error);
                 }
-            } catch (error) {
-                loader.style.display = 'none';
-                result.innerHTML = `<p>Error: ${error.message}</p>`;
             }
-            
         });
+
     </script>
 </body>
+
 </html>
